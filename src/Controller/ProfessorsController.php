@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
@@ -11,95 +12,77 @@ namespace App\Controller;
  */
 class ProfessorsController extends AppController
 {
-    /**
-     * Index method
-     *
-     * @return \Cake\Http\Response|null|void Renders view
-     */
     public function index()
     {
         $professors = $this->paginate($this->Professors);
 
-        $this->set(compact('professors'));
+        $this->set(['response' => $professors]);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
-    /**
-     * View method
-     *
-     * @param string|null $id Professor id.
-     * @return \Cake\Http\Response|null|void Renders view
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function view($id = null)
     {
         $professor = $this->Professors->get($id, [
             'contain' => ['Schedule'],
         ]);
 
-        $this->set(compact('professor'));
+        $this->set(['response' => $professor]);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
-    /**
-     * Add method
-     *
-     * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
-     */
     public function add()
     {
+        $this->request->allowMethod(['post']);
         $professor = $this->Professors->newEmptyEntity();
-        if ($this->request->is('post')) {
-            $professor = $this->Professors->patchEntity($professor, $this->request->getData());
-            if ($this->Professors->save($professor)) {
-                $this->Flash->success(__('The professor has been saved.'));
+        $data = $this->request->getData();
 
-                return $this->redirect(['action' => 'index']);
+        if ($this->request->is('post')) {
+            $professor = $this->Professors->patchEntity($professor, $data);
+            if ($this->Professors->save($professor)) {
+                $this->set(['response' => $professor]);
+                $this->viewBuilder()->setOption('serialize', true);
+                $this->RequestHandler->renderAs($this, 'json');
+                return;
             }
-            $this->Flash->error(__('The professor could not be saved. Please, try again.'));
         }
-        $this->set(compact('professor'));
+        $this->set(['response' => ['error' => 'Could not save new professor.']]);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
-    /**
-     * Edit method
-     *
-     * @param string|null $id Professor id.
-     * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function edit($id = null)
     {
-        $professor = $this->Professors->get($id, [
-            'contain' => [],
-        ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $professor = $this->Professors->patchEntity($professor, $this->request->getData());
-            if ($this->Professors->save($professor)) {
-                $this->Flash->success(__('The professor has been saved.'));
+        $professor = $this->Professors->get($id);
+        $data = $this->request->getData();
 
-                return $this->redirect(['action' => 'index']);
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $professor = $this->Professors->patchEntity($professor, $data);
+            if ($this->Professors->save($professor)) {
+                $this->set(['response' => $professor]);
+                $this->viewBuilder()->setOption('serialize', true);
+                $this->RequestHandler->renderAs($this, 'json');
+                return;
             }
-            $this->Flash->error(__('The professor could not be saved. Please, try again.'));
         }
-        $this->set(compact('professor'));
+        $this->set(['response' => ['error' => 'Could not update professor.']]);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
-    /**
-     * Delete method
-     *
-     * @param string|null $id Professor id.
-     * @return \Cake\Http\Response|null|void Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
         $professor = $this->Professors->get($id);
-        if ($this->Professors->delete($professor)) {
-            $this->Flash->success(__('The professor has been deleted.'));
-        } else {
-            $this->Flash->error(__('The professor could not be deleted. Please, try again.'));
-        }
 
-        return $this->redirect(['action' => 'index']);
+
+        if ($this->Professors->delete($professor)) {
+            $this->set(['response' => ['message' => 'Professor has been deleted.']]);
+        } else {
+            $this->set(['response' => ['error' => 'Professor has not been deleted.']]);
+        }
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 }

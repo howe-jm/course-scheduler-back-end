@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-
 /**
  * Students Controller
  *
@@ -37,9 +36,10 @@ class StudentsController extends AppController
     {
         $this->request->allowMethod(['post']);
         $student = $this->Students->newEmptyEntity();
+        $data = $this->request->getData();
 
         if ($this->request->is('post')) {
-            $student = $this->Students->patchEntity($student, $this->request->getData());
+            $student = $this->Students->patchEntity($student, $data);
             if ($this->Students->save($student)) {
                 $this->set(['response' => $student]);
                 $this->viewBuilder()->setOption('serialize', true);
@@ -47,13 +47,18 @@ class StudentsController extends AppController
                 return;
             }
         }
+        $this->set(['response' => ['error' => 'Could not save new student.']]);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
     public function edit($id = null)
     {
         $student = $this->Students->get($id);
+        $data = $this->request->getData();
+
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $student = $this->Students->patchEntity($student, $this->request->getData());
+            $student = $this->Students->patchEntity($student, $data);
             if ($this->Students->save($student)) {
                 $this->set(['response' => $student]);
                 $this->viewBuilder()->setOption('serialize', true);
@@ -61,7 +66,7 @@ class StudentsController extends AppController
                 return;
             }
         }
-        $this->set(['response' => ['error' => 'Did not save']]);
+        $this->set(['response' => ['error' => 'Could not update student.']]);
         $this->viewBuilder()->setOption('serialize', true);
         $this->RequestHandler->renderAs($this, 'json');
     }
@@ -70,10 +75,11 @@ class StudentsController extends AppController
     {
         $this->request->allowMethod(['post', 'delete']);
         $student = $this->Students->get($id);
+
         if ($this->Students->delete($student)) {
-            $this->set(['response' => 'Student deleted.']);
+            $this->set(['response' => ['message' => 'Student has been deleted.']]);
         } else {
-            $this->set(['error' => 'The student could not be deleted. Please, try again.']);
+            $this->set(['response' => ['error' => 'Could not delete student.']]);
         }
         $this->viewBuilder()->setOption('serialize', true);
         $this->RequestHandler->renderAs($this, 'json');

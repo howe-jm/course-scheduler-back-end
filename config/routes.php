@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Routes configuration.
  *
@@ -41,6 +42,7 @@ use Cake\Routing\RouteBuilder;
  * inconsistently cased URLs when used with `:plugin`, `:controller` and
  * `:action` markers.
  */
+
 /** @var \Cake\Routing\RouteBuilder $routes */
 $routes->setRouteClass(DashedRoute::class);
 
@@ -73,18 +75,27 @@ $routes->scope('/', function (RouteBuilder $builder) {
     $builder->fallbacks();
 });
 
-/*
- * If you need a different set of middleware or none at all,
- * open new scope and define routes there.
- *
- * ```
- * $routes->scope('/api', function (RouteBuilder $builder) {
- *     // No $builder->applyMiddleware() here.
- *     
- *     // Parse specified extensions from URLs
- *     // $builder->setExtensions(['json', 'xml']);
- *     
- *     // Connect API actions here.
- * });
- * ```
- */
+
+// If you need a different set of middleware or none at all,
+// open new scope and define routes there.
+
+
+$routes->scope('/api', function (RouteBuilder $builder) {
+    // Students endpoints
+    $builder->connect('/students', ['controller' => 'Students', 'action' => 'index']);
+    $builder->connect('/students/add', 'Students::add');
+    $builder->connect('/students/view/*', 'Students::view');
+    $builder->connect('/students/delete/*', 'Students::delete');
+
+    // Professors endpoints
+    $builder->connect('/professors', ['controller' => 'Professors', 'action' => 'index']);
+    $builder->connect('/professors/add', 'Professors::add');
+    $builder->connect('/professors/view/*', 'Professors::view');
+    $builder->connect('/professors/delete/*', 'Professors::delete');
+
+    // Courses endpoints
+    $builder->connect('/courses', ['controller' => 'Courses', 'action' => 'index']);
+    $builder->connect('/courses/add', 'Courses::add');
+    $builder->connect('/courses/view/*', 'Courses::view');
+    $builder->connect('/courses/delete/*', 'Courses::delete');
+});

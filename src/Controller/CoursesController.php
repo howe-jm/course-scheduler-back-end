@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
@@ -11,93 +12,73 @@ namespace App\Controller;
  */
 class CoursesController extends AppController
 {
-    /**
-     * Index method
-     *
-     * @return \Cake\Http\Response|null|void Renders view
-     */
     public function index()
     {
         $courses = $this->paginate($this->Courses);
 
-        $this->set(compact('courses'));
+        $this->set(['response' => $courses]);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
-    /**
-     * View method
-     *
-     * @param string|null $id Course id.
-     * @return \Cake\Http\Response|null|void Renders view
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function view($id = null)
     {
         $course = $this->Courses->get($id, [
             'contain' => ['CourseRecords', 'Schedule'],
         ]);
 
-        $this->set(compact('course'));
+        $this->set(['response'], $course);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
-    /**
-     * Add method
-     *
-     * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
-     */
     public function add()
     {
+        $this->request->allowMethod(['post']);
         $course = $this->Courses->newEmptyEntity();
-        if ($this->request->is('post')) {
-            $course = $this->Courses->patchEntity($course, $this->request->getData());
-            if ($this->Courses->save($course)) {
-                $this->Flash->success(__('The course has been saved.'));
+        $data = $this->request->getData();
 
-                return $this->redirect(['action' => 'index']);
+        if ($this->request->is('post')) {
+            $course = $this->Courses->patchEntity($course, $data);
+            if ($this->Courses->save($course)) {
+                $this->set(['response' => $course]);
+                $this->viewBuilder()->setOption('serialize', true);
+                $this->RequestHandler->renderAs($this, 'json');
+                return;
             }
-            $this->Flash->error(__('The course could not be saved. Please, try again.'));
         }
-        $this->set(compact('course'));
+        $this->set(['response' => ['error' => 'Could not save new course.']]);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
-    /**
-     * Edit method
-     *
-     * @param string|null $id Course id.
-     * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function edit($id = null)
     {
-        $course = $this->Courses->get($id, [
-            'contain' => [],
-        ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $course = $this->Courses->patchEntity($course, $this->request->getData());
-            if ($this->Courses->save($course)) {
-                $this->Flash->success(__('The course has been saved.'));
+        $course = $this->Courses->get($id);
+        $data = $this->request->getData();
 
-                return $this->redirect(['action' => 'index']);
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $course = $this->Courses->patchEntity($course, $data);
+            if ($this->Courses->save($course)) {
+                $this->set(['response' => $course]);
+                $this->viewBuilder()->setOption('serialize', true);
+                $this->RequestHandler->renderAs($this, 'json');
             }
-            $this->Flash->error(__('The course could not be saved. Please, try again.'));
         }
-        $this->set(compact('course'));
+        $this->set(['response' => ['error' => 'Could not update course.']]);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
-    /**
-     * Delete method
-     *
-     * @param string|null $id Course id.
-     * @return \Cake\Http\Response|null|void Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
         $course = $this->Courses->get($id);
+
         if ($this->Courses->delete($course)) {
-            $this->Flash->success(__('The course has been deleted.'));
+            $this->set(['response' => ['message' => 'Student has been deleted.']]);
         } else {
-            $this->Flash->error(__('The course could not be deleted. Please, try again.'));
+            $this->set(['response' => ['error' => 'Could not delete course.']]);
         }
 
         return $this->redirect(['action' => 'index']);
