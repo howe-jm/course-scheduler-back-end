@@ -14,6 +14,8 @@ class StudentsController extends AppController
 {
     public function index()
     {
+        $this->request->allowMethod(['get']);
+
         $students = $this->paginate($this->Students);
 
         $this->set(['response' => $students]);
@@ -23,6 +25,15 @@ class StudentsController extends AppController
 
     public function view($id = null)
     {
+        $this->request->allowMethod(['get']);
+
+        if ($id == null || empty($this->Students->findById($id)->first())) {
+            $this->set(['response' => ['error' => 'Student was not found.']]);
+            $this->viewBuilder()->setOption('serialize', true);
+            $this->RequestHandler->renderAs($this, 'json');
+            return;
+        }
+
         $student = $this->Students->get($id, [
             'contain' => ['CourseRecords', 'StudentSchedule'],
         ]);
@@ -35,6 +46,7 @@ class StudentsController extends AppController
     public function add()
     {
         $this->request->allowMethod(['post']);
+
         $student = $this->Students->newEmptyEntity();
         $data = $this->request->getData();
 
@@ -54,6 +66,15 @@ class StudentsController extends AppController
 
     public function edit($id = null)
     {
+        $this->request->allowMethod(['post', 'put', 'patch']);
+
+        if ($id == null || empty($this->Students->findById($id)->first())) {
+            $this->set(['response' => ['error' => 'Student was not found.']]);
+            $this->viewBuilder()->setOption('serialize', true);
+            $this->RequestHandler->renderAs($this, 'json');
+            return;
+        }
+
         $student = $this->Students->get($id);
         $data = $this->request->getData();
 
@@ -74,6 +95,14 @@ class StudentsController extends AppController
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
+
+        if ($id == null || empty($this->Students->findById($id)->first())) {
+            $this->set(['response' => ['error' => 'Student was not found.']]);
+            $this->viewBuilder()->setOption('serialize', true);
+            $this->RequestHandler->renderAs($this, 'json');
+            return;
+        }
+
         $student = $this->Students->get($id);
 
         if ($this->Students->delete($student)) {

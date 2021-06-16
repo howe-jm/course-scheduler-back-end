@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
@@ -23,7 +24,9 @@ class StudentScheduleController extends AppController
         ];
         $studentSchedule = $this->paginate($this->StudentSchedule);
 
-        $this->set(compact('studentSchedule'));
+        $this->set('studentSchedule', $studentSchedule);
+        $this->viewBuilder()->setOption('serialize', true);
+        $this->RequestHandler->renderAs($this, 'json');
     }
 
     /**

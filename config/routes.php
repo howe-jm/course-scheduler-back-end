@@ -85,12 +85,14 @@ $routes->scope('/api', function (RouteBuilder $builder) {
     $builder->connect('/students', ['controller' => 'Students', 'action' => 'index']);
     $builder->connect('/students/add', 'Students::add');
     $builder->connect('/students/view/*', 'Students::view');
+    $builder->connect('/students/edit/*', 'Students::edit');
     $builder->connect('/students/delete/*', 'Students::delete');
 
     // Professors endpoints
     $builder->connect('/professors', ['controller' => 'Professors', 'action' => 'index']);
     $builder->connect('/professors/add', 'Professors::add');
     $builder->connect('/professors/view/*', 'Professors::view');
+    $builder->connect('/professors/edit/*', 'Professors::edit');
     $builder->connect('/professors/delete/*', 'Professors::delete');
 
     // Courses endpoints
@@ -98,4 +100,9 @@ $routes->scope('/api', function (RouteBuilder $builder) {
     $builder->connect('/courses/add', 'Courses::add');
     $builder->connect('/courses/view/*', 'Courses::view');
     $builder->connect('/courses/delete/*', 'Courses::delete');
+
+    // Schedule endpoints
+
+    // Student Schedule endpoints
+    $builder->connect('/studentschedule', ['controller' => 'StudentSchedule', 'action' => 'index']);
 });
