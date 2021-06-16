@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Controller\AppController;
-use Cake\Event\EventInterface;
 
 /**
  * Students Controller
@@ -15,19 +13,6 @@ use Cake\Event\EventInterface;
  */
 class StudentsController extends AppController
 {
-
-    public function initialize(): void
-    {
-        parent::initialize();
-        $this->loadComponent('Security');
-    }
-
-    public function beforeFilter(EventInterface $event)
-    {
-        parent::beforeFilter($event);
-        $this->Security->setConfig('validatePost', false);
-    }
-
     public function index()
     {
         $students = $this->paginate($this->Students);
