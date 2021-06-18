@@ -14,75 +14,150 @@ class ProfessorsController extends AppController
 {
     public function index()
     {
+        $this->request->allowMethod(['get']);
+
+        $this->paginate = [
+            'contain' => [
+                'Schedule' => [
+                    'Courses',
+                ],
+            ],
+        ];
+
         $professors = $this->paginate($this->Professors);
 
-        $this->set(['response' => $professors]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($professors, 1));
     }
 
     public function view($id = null)
     {
+        $this->request->allowMethod(['get']);
+
+        if (is_null($id) || !$this->Professors->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Professor does not exist.',
+                    ],
+                    1
+                ));
+        }
+
         $professor = $this->Professors->get($id, [
-            'contain' => ['Schedule'],
+            'contain' => [
+                'Schedule' => [
+                    'Courses'
+                ],
+            ],
         ]);
 
-        $this->set(['response' => $professor]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($professor, 1));
     }
 
     public function add()
     {
         $this->request->allowMethod(['post']);
+
         $professor = $this->Professors->newEmptyEntity();
         $data = $this->request->getData();
 
         if ($this->request->is('post')) {
             $professor = $this->Professors->patchEntity($professor, $data);
             if ($this->Professors->save($professor)) {
-                $this->set(['response' => $professor]);
-                $this->viewBuilder()->setOption('serialize', true);
-                $this->RequestHandler->renderAs($this, 'json');
-                return;
+                return $this->response
+                    ->withType('application/json')
+                    ->withStatus(201)
+                    ->withStringBody(json_encode($professor, 1));
             }
         }
-        $this->set(['response' => ['error' => 'Could not save new professor.']]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not create new professor.'
+                ],
+                1
+            ));
     }
 
     public function edit($id = null)
     {
+        $this->request->allowMethod(['post', 'put', 'patch']);
+
+        if (is_null($id) || !$this->Professors->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Professor does not exist.'
+                    ],
+                    1
+                ));
+        }
+
         $professor = $this->Professors->get($id);
         $data = $this->request->getData();
 
         if ($this->request->is(['patch', 'post', 'put'])) {
             $professor = $this->Professors->patchEntity($professor, $data);
             if ($this->Professors->save($professor)) {
-                $this->set(['response' => $professor]);
-                $this->viewBuilder()->setOption('serialize', true);
-                $this->RequestHandler->renderAs($this, 'json');
-                return;
+                return $this->response
+                    ->withType('application/json')
+                    ->withStatus(200)
+                    ->withStringBody(json_encode($professor, 1));
             }
         }
-        $this->set(['response' => ['error' => 'Could not update professor.']]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not update professor.'
+                ],
+                1
+            ));
     }
 
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
+
+        if (is_null($id) || !$this->Professors->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Professor does not exist.'
+                    ],
+                    1
+                ));
+        }
+
         $professor = $this->Professors->get($id);
 
-
         if ($this->Professors->delete($professor)) {
-            $this->set(['response' => ['message' => 'Professor has been deleted.']]);
-        } else {
-            $this->set(['response' => ['error' => 'Professor has not been deleted.']]);
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(200)
+                ->withStringBody(json_encode(
+                    [
+                        'message' => "Professor {$id} was successfully deleted."
+                    ],
+                    1
+                ));
         }
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
     }
 }

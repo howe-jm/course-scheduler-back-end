@@ -17,6 +17,8 @@
             <fieldset>
                 <legend><?= __('Add Student Schedule') ?></legend>
                 <?php
+                    echo $this->Form->control('schedule_id', ['options' => $schedule]);
+                    echo $this->Form->control('student_id', ['options' => $students]);
                 ?>
             </fieldset>
             <?= $this->Form->button(__('Submit')) ?>

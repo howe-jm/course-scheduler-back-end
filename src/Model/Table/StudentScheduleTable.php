@@ -41,8 +41,8 @@ class StudentScheduleTable extends Table
         parent::initialize($config);
 
         $this->setTable('student_schedule');
-        $this->setDisplayField('schedule_id');
-        $this->setPrimaryKey(['schedule_id', 'student_id']);
+        $this->setDisplayField('id');
+        $this->setPrimaryKey('id');
 
         $this->belongsTo('Schedule', [
             'foreignKey' => 'schedule_id',
@@ -52,6 +52,21 @@ class StudentScheduleTable extends Table
             'foreignKey' => 'student_id',
             'joinType' => 'INNER',
         ]);
+    }
+
+    /**
+     * Default validation rules.
+     *
+     * @param \Cake\Validation\Validator $validator Validator instance.
+     * @return \Cake\Validation\Validator
+     */
+    public function validationDefault(Validator $validator): Validator
+    {
+        $validator
+            ->integer('id')
+            ->allowEmptyString('id', null, 'create');
+
+        return $validator;
     }
 
     /**

@@ -16,31 +16,57 @@ class StudentsController extends AppController
     {
         $this->request->allowMethod(['get']);
 
+        $this->paginate = [
+            'contain' => [
+                'CourseRecords',
+                'StudentSchedule' => [
+                    'Schedule' => [
+                        'Courses',
+                        'Professors',
+                    ],
+                ],
+            ],
+        ];
         $students = $this->paginate($this->Students);
 
-        $this->set(['response' => $students]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($students, 1));
     }
 
     public function view($id = null)
     {
         $this->request->allowMethod(['get']);
 
-        if ($id == null || empty($this->Students->findById($id)->first())) {
-            $this->set(['response' => ['error' => 'Student was not found.']]);
-            $this->viewBuilder()->setOption('serialize', true);
-            $this->RequestHandler->renderAs($this, 'json');
-            return;
+        if (is_null($id) || !$this->Students->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Student does not exist.',
+                    ],
+                    1
+                ));
         }
 
         $student = $this->Students->get($id, [
-            'contain' => ['CourseRecords', 'StudentSchedule'],
+            'contain' => [
+                'CourseRecords',
+                'StudentSchedule' => [
+                    'Schedule' => [
+                        'Courses',
+                        'Professors'
+                    ]
+                ]
+            ],
         ]);
 
-        $this->set(['response' => $student]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($student, 1));
     }
 
     public function add()
@@ -53,26 +79,37 @@ class StudentsController extends AppController
         if ($this->request->is('post')) {
             $student = $this->Students->patchEntity($student, $data);
             if ($this->Students->save($student)) {
-                $this->set(['response' => $student]);
-                $this->viewBuilder()->setOption('serialize', true);
-                $this->RequestHandler->renderAs($this, 'json');
-                return;
+                return $this->response
+                    ->withType('application/json')
+                    ->withStatus(201)
+                    ->withStringBody(json_encode($student, 1));
             }
         }
-        $this->set(['response' => ['error' => 'Could not save new student.']]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not create new student.'
+                ],
+                1
+            ));
     }
 
     public function edit($id = null)
     {
         $this->request->allowMethod(['post', 'put', 'patch']);
 
-        if ($id == null || empty($this->Students->findById($id)->first())) {
-            $this->set(['response' => ['error' => 'Student was not found.']]);
-            $this->viewBuilder()->setOption('serialize', true);
-            $this->RequestHandler->renderAs($this, 'json');
-            return;
+        if (is_null($id) || !$this->Students->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Student does not exist.'
+                    ],
+                    1
+                ));
         }
 
         $student = $this->Students->get($id);
@@ -81,36 +118,61 @@ class StudentsController extends AppController
         if ($this->request->is(['patch', 'post', 'put'])) {
             $student = $this->Students->patchEntity($student, $data);
             if ($this->Students->save($student)) {
-                $this->set(['response' => $student]);
-                $this->viewBuilder()->setOption('serialize', true);
-                $this->RequestHandler->renderAs($this, 'json');
-                return;
+                return $this->response
+                    ->withType('application/json')
+                    ->withStatus(200)
+                    ->withStringBody(json_encode($student, 1));
             }
         }
-        $this->set(['response' => ['error' => 'Could not update student.']]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not update student.'
+                ],
+                1
+            ));
     }
 
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
 
-        if ($id == null || empty($this->Students->findById($id)->first())) {
-            $this->set(['response' => ['error' => 'Student was not found.']]);
-            $this->viewBuilder()->setOption('serialize', true);
-            $this->RequestHandler->renderAs($this, 'json');
-            return;
+        if (is_null($id) || !$this->Students->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Student does not exist.'
+                    ],
+                    1
+                ));
         }
 
         $student = $this->Students->get($id);
 
         if ($this->Students->delete($student)) {
-            $this->set(['response' => ['message' => 'Student has been deleted.']]);
-        } else {
-            $this->set(['response' => ['error' => 'Could not delete student.']]);
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(200)
+                ->withStringBody(json_encode(
+                    [
+                        'message' => "Student {$id} was successfully deleted."
+                    ],
+                    1
+                ));
         }
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not delete student.'
+                ],
+                1
+            ));
     }
 }

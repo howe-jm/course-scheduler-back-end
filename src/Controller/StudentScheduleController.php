@@ -12,37 +12,49 @@ namespace App\Controller;
  */
 class StudentScheduleController extends AppController
 {
-    /**
-     * Index method
-     *
-     * @return \Cake\Http\Response|null|void Renders view
-     */
     public function index()
     {
+        $this->request->allowMethod(['get']);
+
         $this->paginate = [
-            'contain' => ['Schedule', 'Students'],
+            'contain' => [
+                'Schedule' => [
+                    'Professors',
+                    'Courses',
+                ],
+                'Students',
+            ],
         ];
         $studentSchedule = $this->paginate($this->StudentSchedule);
 
-        $this->set('studentSchedule', $studentSchedule);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($studentSchedule, 1));
     }
 
-    /**
-     * View method
-     *
-     * @param string|null $id Student Schedule id.
-     * @return \Cake\Http\Response|null|void Renders view
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function view($id = null)
     {
-        $studentSchedule = $this->StudentSchedule->get($id, [
-            'contain' => ['Schedule', 'Students'],
-        ]);
+        $this->request->allowMethod(['get']);
 
-        $this->set(compact('studentSchedule'));
+        if (is_null($id) || !$this->StudentSchedule->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Student schedule item does not exist.'
+                    ],
+                    1
+                ));
+        }
+
+        $studentSchedule = $this->StudentSchedule->get($id);
+
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($studentSchedule, 1));
     }
 
     /**

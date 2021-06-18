@@ -8,6 +8,7 @@ use Cake\ORM\Entity;
 /**
  * StudentSchedule Entity
  *
+ * @property int $id
  * @property int $schedule_id
  * @property int $student_id
  *
@@ -26,6 +27,8 @@ class StudentSchedule extends Entity
      * @var array
      */
     protected $_accessible = [
+        'schedule_id' => true,
+        'student_id' => true,
         'schedule' => true,
         'student' => true,
     ];

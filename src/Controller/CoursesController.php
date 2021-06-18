@@ -14,73 +14,164 @@ class CoursesController extends AppController
 {
     public function index()
     {
+        $this->request->allowMethod(['get']);
+
+        $this->paginate = [
+            'contain' => [
+                'Schedule' => [
+                    'Professors',
+                    'StudentSchedule' => [
+                        'Students',
+                    ],
+                ],
+            ],
+        ];
         $courses = $this->paginate($this->Courses);
 
-        $this->set(['response' => $courses]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($courses, 1));
     }
 
     public function view($id = null)
     {
+        $this->request->allowMethod(['get']);
+
+        if (is_null($id) || !$this->Courses->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Course does not exist.'
+                    ],
+                    1
+                ));
+        }
+
         $course = $this->Courses->get($id, [
-            'contain' => ['CourseRecords', 'Schedule'],
+            'contain' => [
+                'Schedule' => [
+                    'Professors',
+                    'StudentSchedule' => [
+                        'Students',
+                    ],
+                ],
+            ],
         ]);
 
-        $this->set(['response'], $course);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($course, 1));
     }
 
     public function add()
     {
         $this->request->allowMethod(['post']);
+
         $course = $this->Courses->newEmptyEntity();
         $data = $this->request->getData();
 
         if ($this->request->is('post')) {
             $course = $this->Courses->patchEntity($course, $data);
             if ($this->Courses->save($course)) {
-                $this->set(['response' => $course]);
-                $this->viewBuilder()->setOption('serialize', true);
-                $this->RequestHandler->renderAs($this, 'json');
-                return;
+                return $this->response
+                    ->withType('application/json')
+                    ->withStatus(201)
+                    ->withStringBody(json_encode($course, 1));
             }
         }
-        $this->set(['response' => ['error' => 'Could not save new course.']]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not create new course.'
+                ],
+                1
+            ));
     }
 
     public function edit($id = null)
     {
+        $this->request->allowMethod(['post', 'put', 'patch']);
+
+        if (is_null($id) || !$this->Courses->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Course does not exist.'
+                    ],
+                    1
+                ));
+        }
+
         $course = $this->Courses->get($id);
         $data = $this->request->getData();
 
         if ($this->request->is(['patch', 'post', 'put'])) {
             $course = $this->Courses->patchEntity($course, $data);
             if ($this->Courses->save($course)) {
-                $this->set(['response' => $course]);
-                $this->viewBuilder()->setOption('serialize', true);
-                $this->RequestHandler->renderAs($this, 'json');
+                return $this->response
+                    ->withType('application/json')
+                    ->withStatus(200)
+                    ->withStringBody(json_encode($course, 1));
             }
         }
-        $this->set(['response' => ['error' => 'Could not update course.']]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not update course.'
+                ],
+                1
+            ));
     }
 
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
+
+        if (is_null($id) || !$this->Courses->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Course does not exist.'
+                    ],
+                    1
+                ));
+        }
+
         $course = $this->Courses->get($id);
 
         if ($this->Courses->delete($course)) {
-            $this->set(['response' => ['message' => 'Student has been deleted.']]);
-        } else {
-            $this->set(['response' => ['error' => 'Could not delete course.']]);
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(200)
+                ->withStringBody(json_encode(
+                    [
+                        'message' => "Course {$id} was successfully deleted."
+                    ],
+                    1
+                ));
         }
-
-        return $this->redirect(['action' => 'index']);
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not delete course'
+                ],
+                1
+            ));
     }
 }

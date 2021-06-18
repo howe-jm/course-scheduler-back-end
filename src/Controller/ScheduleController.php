@@ -12,106 +12,162 @@ namespace App\Controller;
  */
 class ScheduleController extends AppController
 {
-    /**
-     * Index method
-     *
-     * @return \Cake\Http\Response|null|void Renders view
-     */
     public function index()
     {
+        $this->request->allowMethod(['get']);
+
         $this->paginate = [
             'contain' => ['Courses', 'Professors'],
         ];
+
         $schedule = $this->paginate($this->Schedule);
 
-        $this->set(['response' => $schedule]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($schedule, 1));
     }
 
-    /**
-     * View method
-     *
-     * @param string|null $id Schedule id.
-     * @return \Cake\Http\Response|null|void Renders view
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function view($id = null)
     {
+        $this->request->allowMethod(['get']);
+
+        if (is_null($id) || !$this->Schedule->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Schedule item does not exist.',
+                    ],
+                    1
+                ));
+        }
+
         $schedule = $this->Schedule->get($id, [
-            'contain' => ['Courses', 'Professors', 'StudentSchedule'],
+            'contain' => [
+                'Courses',
+                'Professors',
+                'StudentSchedule' => [
+                    'Students',
+                ],
+            ],
         ]);
 
-        $this->set(['response' => $schedule]);
-        $this->viewBuilder()->setOption('serialize', true);
-        $this->RequestHandler->renderAs($this, 'json');
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(200)
+            ->withStringBody(json_encode($schedule, 1));
     }
 
-    /**
-     * Add method
-     *
-     * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
-     */
+
     public function add()
     {
-        $schedule = $this->Schedule->newEmptyEntity();
-        if ($this->request->is('post')) {
-            $schedule = $this->Schedule->patchEntity($schedule, $this->request->getData());
-            if ($this->Schedule->save($schedule)) {
-                $this->Flash->success(__('The schedule has been saved.'));
+        $this->request->allowMethod(['post']);
 
-                return $this->redirect(['action' => 'index']);
+        $schedule = $this->Schedule->newEmptyEntity();
+        $data = $this->request->getData();
+
+        if ($this->request->is('post')) {
+            $schedule = $this->Schedule->patchEntity($schedule, $data);
+            if ($this->Schedule->save($schedule)) {
+                return $this->response
+                    ->withType('application/json')
+                    ->withStatus(201)
+                    ->withStringBody(json_encode($schedule, 1));
             }
-            $this->Flash->error(__('The schedule could not be saved. Please, try again.'));
         }
-        $courses = $this->Schedule->Courses->find('list', ['limit' => 200]);
-        $professors = $this->Schedule->Professors->find('list', ['limit' => 200]);
-        $this->set(compact('schedule', 'courses', 'professors'));
+
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Schedule item does not exist.',
+                ],
+                1
+            ));
     }
 
-    /**
-     * Edit method
-     *
-     * @param string|null $id Schedule id.
-     * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
+
     public function edit($id = null)
     {
-        $schedule = $this->Schedule->get($id, [
-            'contain' => [],
-        ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $schedule = $this->Schedule->patchEntity($schedule, $this->request->getData());
-            if ($this->Schedule->save($schedule)) {
-                $this->Flash->success(__('The schedule has been saved.'));
+        $this->request->allowMethod(['post', 'put', 'patch']);
 
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The schedule could not be saved. Please, try again.'));
+        if (is_null($id) || !$this->Schedule->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Schedule item does not exist.',
+                    ],
+                    1
+                ));
         }
-        $courses = $this->Schedule->Courses->find('list', ['limit' => 200]);
-        $professors = $this->Schedule->Professors->find('list', ['limit' => 200]);
-        $this->set(compact('schedule', 'courses', 'professors'));
+
+        $schedule = $this->Schedule->get($id);
+        $data = $this->request->getData();
+
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $schedule = $this->Schedule->patchEntity($schedule, $data);
+            if ($this->Schedule->save($schedule)) {
+                return $this->response
+                    ->withType('application/json')
+                    ->withStatus(200)
+                    ->withStringBody(json_encode($schedule, 1));
+            }
+        }
+
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not update schedule item.'
+                ],
+                1
+            ));
     }
 
-    /**
-     * Delete method
-     *
-     * @param string|null $id Schedule id.
-     * @return \Cake\Http\Response|null|void Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
+
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
-        $schedule = $this->Schedule->get($id);
-        if ($this->Schedule->delete($schedule)) {
-            $this->Flash->success(__('The schedule has been deleted.'));
-        } else {
-            $this->Flash->error(__('The schedule could not be deleted. Please, try again.'));
+
+        if (is_null($id) || !$this->Schedule->exists(['id' => $id])) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(404)
+                ->withStringBody(json_encode(
+                    [
+                        'error' => 'Schedule item does not exist.'
+                    ],
+                    1
+                ));
         }
 
-        return $this->redirect(['action' => 'index']);
+        $schedule = $this->Schedule->get($id);
+
+        if ($this->Schedule->delete($schedule)) {
+            return $this->response
+                ->withType('application/json')
+                ->withStatus(200)
+                ->withStringBody(json_encode(
+                    [
+                        'message' => "Schedule item {$id} was successfully deleted."
+                    ],
+                    1
+                ));
+        }
+        return $this->response
+            ->withType('application/json')
+            ->withStatus(400)
+            ->withStringBody(json_encode(
+                [
+                    'error' => 'Could not delete schedule item.'
+                ],
+                1
+            ));
     }
 }

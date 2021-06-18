@@ -23,13 +23,15 @@ class StudentScheduleFixture extends TestFixture
      */
     // phpcs:disable
     public $fields = [
+        'id' => ['type' => 'integer', 'length' => null, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'autoIncrement' => true, 'precision' => null],
         'schedule_id' => ['type' => 'integer', 'length' => null, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'student_id' => ['type' => 'integer', 'length' => null, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         '_indexes' => [
+            'schedule_key' => ['type' => 'index', 'columns' => ['schedule_id'], 'length' => []],
             'student_key' => ['type' => 'index', 'columns' => ['student_id'], 'length' => []],
         ],
         '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['schedule_id', 'student_id'], 'length' => []],
+            'primary' => ['type' => 'primary', 'columns' => ['id'], 'length' => []],
             'student_schedule_ibfk_1' => ['type' => 'foreign', 'columns' => ['schedule_id'], 'references' => ['schedule', 'id'], 'update' => 'noAction', 'delete' => 'noAction', 'length' => []],
             'student_schedule_ibfk_2' => ['type' => 'foreign', 'columns' => ['student_id'], 'references' => ['students', 'id'], 'update' => 'noAction', 'delete' => 'noAction', 'length' => []],
         ],
@@ -48,6 +50,7 @@ class StudentScheduleFixture extends TestFixture
     {
         $this->records = [
             [
+                'id' => 1,
                 'schedule_id' => 1,
                 'student_id' => 1,
             ],

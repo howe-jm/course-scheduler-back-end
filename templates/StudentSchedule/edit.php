@@ -10,8 +10,8 @@
             <h4 class="heading"><?= __('Actions') ?></h4>
             <?= $this->Form->postLink(
                 __('Delete'),
-                ['action' => 'delete', $studentSchedule->schedule_id],
-                ['confirm' => __('Are you sure you want to delete # {0}?', $studentSchedule->schedule_id), 'class' => 'side-nav-item']
+                ['action' => 'delete', $studentSchedule->id],
+                ['confirm' => __('Are you sure you want to delete # {0}?', $studentSchedule->id), 'class' => 'side-nav-item']
             ) ?>
             <?= $this->Html->link(__('List Student Schedule'), ['action' => 'index'], ['class' => 'side-nav-item']) ?>
         </div>
@@ -22,6 +22,8 @@
             <fieldset>
                 <legend><?= __('Edit Student Schedule') ?></legend>
                 <?php
+                    echo $this->Form->control('schedule_id', ['options' => $schedule]);
+                    echo $this->Form->control('student_id', ['options' => $students]);
                 ?>
             </fieldset>
             <?= $this->Form->button(__('Submit')) ?>
