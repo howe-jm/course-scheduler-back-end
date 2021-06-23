@@ -83,7 +83,8 @@ class ScheduleController extends AppController
             ->withStatus(400)
             ->withStringBody(json_encode(
                 [
-                    'error' => 'Schedule item does not exist.',
+                    'error' => 'Schedule item not added.',
+                    $schedule
                 ],
                 1
             ));
