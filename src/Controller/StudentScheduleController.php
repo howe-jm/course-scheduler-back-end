@@ -143,7 +143,7 @@ class StudentScheduleController extends AppController
         $studentSchedule = $this->StudentSchedule->get($id);
 
         if ($this->StudentSchedule->delete($studentSchedule)) {
-            $this->response
+            return $this->response
                 ->withType('application/json')
                 ->withStatus(200)
                 ->withStringBody(json_encode(

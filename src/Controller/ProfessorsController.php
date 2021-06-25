@@ -20,6 +20,9 @@ class ProfessorsController extends AppController
             'contain' => [
                 'Schedule' => [
                     'Courses',
+                    'StudentSchedule' => [
+                        'Students',
+                    ],
                 ],
             ],
         ];
@@ -51,7 +54,10 @@ class ProfessorsController extends AppController
         $professor = $this->Professors->get($id, [
             'contain' => [
                 'Schedule' => [
-                    'Courses'
+                    'Courses',
+                    'StudentSchedule' => [
+                        'Students',
+                    ],
                 ],
             ],
         ]);

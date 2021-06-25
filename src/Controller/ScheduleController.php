@@ -17,7 +17,7 @@ class ScheduleController extends AppController
         $this->request->allowMethod(['get']);
 
         $this->paginate = [
-            'contain' => ['Courses', 'Professors'],
+            'contain' => ['Courses', 'Professors', 'StudentSchedule' => ['Students']],
         ];
 
         $schedule = $this->paginate($this->Schedule);
